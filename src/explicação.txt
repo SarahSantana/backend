@@ -1,0 +1,118 @@
+import express from 'express';
+import { getRepository } from 'typeorm';
+import Orphanage from './models/Orphanage';
+
+import './database/connection';
+
+const app = express();
+
+app.use(express.json()); // fazer express entender json
+
+// request td o que for passado de front para o backend (parametro, corpo da requisição abeçalho)
+// response como que o backend vai devolver a resposta se vai ter status erro etc
+//ROTA = conjunto
+// '/users' é o recurso Rucurso = usuario
+
+// Métodos HTTP = GET, POST, PUT, DELETE siginificado semantico dentro da aplicação
+// GET = BUSCAR UMA INFORMAÇÃO (não envia informações no corpo da requisição) rotas do tipo get consegue ser acessada pelo navedor diretamente
+// POST = CRIANDO UMA INFORMAÇÃO NOVA
+// PUT = EDITANDO UMA INFORMAÇÃO
+// DELETE = DELETAR UMA INFORMAÇÃO
+
+// Parametros
+// Query Params: são enviados na nossa propria rota http://localhost:3333/users?search=diego&page=2 ex quero filtrar a lista de usuarios
+// Route Params: tbm são enviados pela nossa rota mas sao enviados sem o nome http://localhost:3333/users/1 (para identificar um recurso)
+// por exemplo para saber qual usuario quer editar e deletar (fala atraves da rota qual id)
+// Body: http://localhost:3333/users corpo da requisição serve para enviar dados que nao cabem 
+// nos outros tipos de parametros que são geralmente dados vindos de formularios ex se vou criar um ausuario do zero
+// então no body da nossa reuisição vai vir nome, email, usuário, senha, twitter etc
+
+
+/*app.get('/users/:id', (request, response) => {
+    console.log(request.query); // para mostrar os query params
+    console.log(request.params);
+    console.log(request.body);
+
+    // return response.send('Hello world');
+    return response.json({ message: 'Hello world' });
+});*/
+
+app.post('/orphanages', async (request, response) => {
+  const {
+    name,
+    latitude,
+    longitude,
+    about,
+    instructions,
+    opening_hours,
+    open_on_weekends
+  } = request.body;
+
+  const orphanagesRepository = getRepository(Orphanage);
+
+  const orphanage = orphanagesRepository.create({
+    name,
+    latitude,
+    longitude,
+    about,
+    instructions,
+    opening_hours,
+    open_on_weekends
+  });
+
+  await orphanagesRepository.save(orphanage);
+
+  return response.status(201).json(orphanage);
+});
+
+app.listen(3333);
+
+/**
+ * Cada vez que o usuário acessa uma rota ou o react faz uma chamada
+ * para o api para o nosso backend a gente chama isso de requisição
+ * e o node tem que devolver uma resposta
+ * O express é um framework em node bem simples que ajuda a gente a lidar com
+ * essas requisões e respostas e ajuda a gente a lidar com as rotas ou seja com
+ * as requisições, ex qndo o usuario estiver requisitando uma pagina de listagem de 
+ * contatos eu vou responder com a listagem desses contatos
+ * localhost:3333
+ * para instalar o pacote de tipagens do express para evitar erro 
+ * usar o comando: npm add @types/express -D
+ * 
+ * O node não entende o typescript só entende o javascript por padrão entao
+ * é preciso instalar o typescript nessa aplicação
+ * npm install -g typescript
+ * depois na raiz do projeto executar o comando npm tsc --init ele vai criar pra gente
+ * um arquivo chamado tsconfig.json (nesse arquivo trocar target es5 para es2017) q é
+ * a versão do ts
+ * 
+ * npm add ts-node-dev -D pacote para executar o projeto utilizando o typescript e o node
+ * para rodar a aplicação vamos adicionar o script "dev": "ts-node-dev src/server.ts",
+ * no package e executar ele npm run dev
+ * 
+ * --transpile-only para nao verificar se tem erros ou não
+ * --ignore-watch node_modules ele nao vai observar alterações do node_modules
+ * essas opções servem para executar mais rápido
+ * 
+ * FORMAS DE LIDAR COM BANCO DE DADOS DENTRO DA NOSSA APLICAÇÃO:
+ * - DRIVER NATIVO, query builder, ORM (Object relational mapping) (maior nivel de abstração)
+ * para cada tabela do banco vamos ter 1 classe
+ * se tiver a tabela users vai ter a classe Users se na tabela users tiver 3 registros de usuários no banco de dados
+ * então teremos tbm 3 instancias da classe, ou seja 3 objetos user da classe Users se deletarmos os obejtos estaremos deletando tbm 
+ * os usuarios no banco de dados podemos manipular o banco de dados aqui pelo javascript, por meio das classes
+ * vamos usar o SQLite3 npm add typeorm sqlite3
+ * 
+ * para criar tabela $ npm run typeorm migration:create -n create_orphanages
+ * para rodar comando no metodo up/down yarn typeorm migration:run
+ * para desfazer a migration $ yarn typeorm migration:revert
+ * */ 
+
+ Padrão MVC
+ Model => representação de uma tabela no banco de dados, representação de uma entidade na aplicação, um dados usuario etc
+ Views => como as coisas ficam disponiveis no front end como são visualizadas 
+ Controllers => onde ficam a logica das nossas rotas
+
+ yarn add multer
+para dicionar biblioteca para lidar com upload de imagem
+
+$ yarn add express-async-errors
